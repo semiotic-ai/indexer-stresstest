@@ -25,7 +25,7 @@ function get_rand_query(
     depthProbability: 0.5,
     breadthProbability: 0.5,
     ignoreOptionalArguments: true, // In our case, only `id`
-    providerMap: providermap,
+    providerMap: providermap_reduced,
     providePlaceholders: true,
   };
 
