@@ -47,6 +47,8 @@ async function stresstest() {
     headers: config.HEADERS,
   });
 
+  gql_client.setHeader('Warning', 'indexer-stresstest')
+
   while (true) {
     const [query, vars] = get_rand_query(schema, providermap);
     const query_str = print(query);
