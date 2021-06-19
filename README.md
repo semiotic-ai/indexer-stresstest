@@ -1,5 +1,21 @@
 # indexer-stresstest
 
+This is a relatively basic random query generator that's targeted at stress-testing
+The Graph's [graph node](https://github.com/graphprotocol/graph-node). It is relying
+heavily on IBM's
+[graphql-query-generator](https://github.com/IBM/graphql-query-generator).
+
+What it does is use the target subgraph's GraphQL schema, as well as pull all queryable
+IDs for all data types to generate the random queries. It is not capable of creating
+filters other than specific IDs. The generated queries will feature repetitions,
+nesting, etc.
+
+Note that Semiotic AI does not guarantee support and maintenance of this software.
+It is released for its potential usefulness to The Graph indexers. Feel free to fork and
+continue development.
+
+## Usage
+
 To get started complete the following steps below.
 
 ### 1. Dependencies
