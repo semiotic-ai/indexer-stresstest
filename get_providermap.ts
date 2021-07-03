@@ -22,6 +22,40 @@ import { GraphQLClient, gql } from "graphql-request";
 import * as config from "./config";
 
 import type { GraphQLFieldMap } from "graphql";
+import { RequestDocument, Variables } from "graphql-request/dist/types";
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function gql_query_retry(
+  retry_times: number,
+  retry_sleep: number,
+  gql_client: GraphQLClient,
+  document: RequestDocument,
+  variables?: Variables
+) {
+  var data: Object;
+
+  for (let i = 0; i < retry_times; i++) {
+    try {
+      data = await gql_client.request(document, variables);
+      break;
+    } catch (e) {
+      if (i < retry_times - 1) {
+        console.log(
+          `Endpoint error, retrying in 1 second (${i + 1}/${retry_times})`
+        );
+        await sleep(retry_sleep);
+      } else {
+        // That was the last retry
+        throw e;
+      }
+    }
+  }
+
+  return data;
+}
 
 async function get_field_ids(field: string) {
   /**
@@ -44,7 +78,7 @@ async function get_field_ids(field: string) {
       }
     `;
 
-  var data: Object = await gql_client.request(query);
+  var data: Object = await gql_query_retry(10, 1000, gql_client, query);
   var data_ids = Object.entries(data)[0][1];
   data_ids = data_ids.map((x) => x["id"]);
   id_list[field].push(...data_ids);
@@ -61,7 +95,12 @@ async function get_field_ids(field: string) {
           }
         }
         `;
-      data = await gql_client.request(query);
+
+      console.log("Querying:");
+      console.log(query);
+
+      data = await gql_query_retry(10, 1000, gql_client, query);
+
       data_ids = Object.entries(data)[0][1];
       data_ids = data_ids.map((x) => x["id"]);
       id_list[field].push(...data_ids);
@@ -131,7 +170,7 @@ async function make_providermap(
    * Create a providermap with a format suitable for "ibm-graphql-query-generator".
    * The resulting object will contain the keys in "*__FieldName__id" format, with
    * each value being an array of all the possible IDs.
-   * 
+   *
    * Note that "ibm-graphql-query-generator" actually expects a single value under each
    * key.
    */
